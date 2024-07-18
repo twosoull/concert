@@ -1,6 +1,9 @@
 package io.hhplus.concert.presentation.interceptor;
 
 import io.hhplus.concert.common.enums.TokenStatus;
+import io.hhplus.concert.domain.entity.Token;
+import io.hhplus.concert.domain.handler.exception.TokenException;
+import io.hhplus.concert.domain.respository.TokenRepository;
 import io.hhplus.concert.domain.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,12 +13,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.EXPIRED_TOKEN;
+import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.NOT_FOUND_TOKEN;
+
 @Component
 @Slf4j
 public class TokenInterceptor implements HandlerInterceptor {
 
     @Autowired
-    private TokenService tokenService;
+    private TokenRepository tokenRepository;
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
@@ -36,12 +45,25 @@ public class TokenInterceptor implements HandlerInterceptor {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7); // "Bearer " 부분 제거
         }else{
-            throw new RuntimeException("토큰이 없습니다.");
+            throw new TokenException(NOT_FOUND_TOKEN);
+        }
+        Token findToken = tokenRepository.findByToken(token);
+        if(isTokenExpired(findToken)){
+            findToken.setStatus(TokenStatus.EXPIRATION);
+            throw new TokenException(EXPIRED_TOKEN);
         }
 
-        // 추출된 토큰 처리 로직
-        System.out.println("추출 토큰: " + token);
-
         return true;
+    }
+
+    //액티브 된 토큰의 시간이 5분 지났는지 판단 한다.
+    public boolean isTokenExpired(Token token) {
+        LocalDateTime issuedAt =
+                token.getStatus() == TokenStatus.ACTIVE ? token.getUpdateAt()
+                        : token.getAccessTime();
+
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(issuedAt, now);
+        return duration.toMinutes() >= 5;
     }
 }
