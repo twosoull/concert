@@ -88,7 +88,6 @@ public class TokenService {
         return issuedAt;
     }
 
-
     //토큰 active 수 파악 후 현재 스테이터스 확인
     private TokenStatus getTokenStatus() {
         List<Token> tokens = tokenRepository.findAllByStatus(TokenStatus.ACTIVE);
@@ -142,6 +141,27 @@ public class TokenService {
         return order;
     }
 
+    //토큰 검사 후 전환하기
+    public void convertTokens() {
+        List<Token> tokens = tokenRepository.findAllByStatus(TokenStatus.ACTIVE);
+        if (tokens.size() < 30) {
+            int activationPossible = 30 - tokens.size();
+            List<Token> waitTokens = tokenRepository.findAllByStatus(TokenStatus.WAIT);
+
+            for(int i = 0; i < activationPossible; i++){
+                LocalDateTime now = LocalDateTime.now();
+                Token token = waitTokens.get(i);
+                token.setStatus(TokenStatus.ACTIVE);
+                token.setUpdateAt(now);
+
+                log.info("[토큰 전환 성공] 대상 유저 = {} , token = {}, 생성 시각 = {}, 전환 시각 ={}"
+                        ,token.getUser().getId()
+                        ,token.getToken()
+                        ,token.getAccessTime()
+                        ,token.getUpdateAt());
+            }
+        }
+    }
 
     /*대용량 때의 시나리오 예상*/
         //info와 체크는 일단 필요가 없다. 나는 대기시간 등을 가정하는 방식을 통해서 진행할 것이다.
