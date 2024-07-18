@@ -1,14 +1,9 @@
 package io.hhplus.concert;
 
+import io.hhplus.concert.common.enums.SeatStatus;
 import io.hhplus.concert.common.enums.TokenStatus;
-import io.hhplus.concert.domain.entity.Concert;
-import io.hhplus.concert.domain.entity.ConcertSchedule;
-import io.hhplus.concert.domain.entity.Token;
-import io.hhplus.concert.domain.entity.User;
-import io.hhplus.concert.infrastructure.repositoryImpl.ConcertRepositoryImpl;
-import io.hhplus.concert.infrastructure.repositoryImpl.ConcertScheduleRepositoryImpl;
-import io.hhplus.concert.infrastructure.repositoryImpl.TokenRepositoryImpl;
-import io.hhplus.concert.infrastructure.repositoryImpl.UserRepositoryImpl;
+import io.hhplus.concert.domain.entity.*;
+import io.hhplus.concert.infrastructure.repositoryImpl.*;
 import io.hhplus.concert.infrastructure.repositoryORM.TokenJpaRepository;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +31,9 @@ public class DataInitializer {
     private ConcertScheduleRepositoryImpl concertScheduleRepository;
 
     @Autowired
+    private ConcertSeatRepositoryImpl concertSeatRepository;
+
+    @Autowired
     private EntityManager em;
     @Bean
     public CommandLineRunner initData() {
@@ -45,11 +43,17 @@ public class DataInitializer {
                 User user = new User(i,"dsa","fasd");
                 userRepository.save(user);
                 Token token = null;
-                if( i <30L){
+                if( i <27L){
                     token = Token.create(user,TokenStatus.ACTIVE);
+                }else{
+                    token = Token.create(user,TokenStatus.WAIT);
                 }
-                token = Token.create(user,TokenStatus.WAIT);
                 tokenRepository.save(token);
+            }
+
+            for(Long i = 100L; i < 120L; i++) {
+                User user = new User(i, "dsa", "fasd");
+                userRepository.save(user);
             }
 
             Concert concert = new Concert(1L, "향해하는 남자", "욕심은 버려라, 할 수 있는 만큼만 해보자");
@@ -59,6 +63,16 @@ public class DataInitializer {
                     ,10000L,LocalDateTime.now(),LocalDateTime.now());
 
             concertScheduleRepository.save(concertSchedule);
+
+            ConcertSeat concertSeat = new ConcertSeat(concertSchedule,
+                    null, 1L, SeatStatus.UNASSIGNED, null,null);
+
+            ConcertSeat concertSeat2 = new ConcertSeat(concertSchedule,
+                    null, 2L, SeatStatus.UNASSIGNED, null,null);
+
+            concertSeatRepository.save(concertSeat);
+            concertSeatRepository.save(concertSeat2);
+
         };
     }
 }

@@ -1,8 +1,5 @@
 package io.hhplus.concert.domain.service;
 
-import io.hhplus.concert.common.enums.ReservationStatus;
-import io.hhplus.concert.common.enums.TokenStatus;
-import io.hhplus.concert.common.enums.TransactionType;
 import io.hhplus.concert.domain.command.PaymentCommand;
 import io.hhplus.concert.domain.entity.*;
 import io.hhplus.concert.domain.respository.*;
@@ -24,12 +21,12 @@ public class PaymentService {
     private final TokenRepository tokenRepository;
 
 
-    public PaymentCommand.PaymentResDto payment(PaymentCommand.PaymentReqDto reqDto) {
+    public PaymentCommand.getPaymentInfo pay(PaymentCommand.Pay pay) {
         LocalDateTime now = LocalDateTime.now();
-        Wallet wallet = walletRepository.findByUserId(reqDto.userId());
-        ConcertReservation concertReservation = concertReservationRepository.findById(reqDto.concertReservationId());
-        ConcertSeat concertSeat = concertSeatRepository.findById(reqDto.seatId());
-        Token token = tokenRepository.findByUserId(reqDto.userId());
+        Wallet wallet = walletRepository.findByUserId(pay.userId());
+        ConcertReservation concertReservation = concertReservationRepository.findById(pay.concertReservationId());
+        ConcertSeat concertSeat = concertSeatRepository.findById(pay.seatId());
+        Token token = tokenRepository.findByUserId(pay.userId());
 
         //예약했던 콘서트일정 상태를 확정으로 만들어 준다.
         concertReservation.setReserved();
@@ -47,11 +44,12 @@ public class PaymentService {
         // 히스토리를 쌓는다.
         walletHistoryRepository.save(getWalletHistory(wallet, price, balanceBefore, balanceAfter, now));
 
-        return new PaymentCommand.PaymentResDto(concertReservation.getConcertTitle(),
+        return new PaymentCommand.getPaymentInfo(concertReservation.getConcertTitle(),
                                                 concertReservation.getDescription(),
                                                 concertReservation.getConcertAt(),
                                                 concertReservation.getStatus(),
                                                 price,
+                                                balanceAfter,
                                                 wallet.getLastUpdateAt(),
                                                 concertSeat.getSeat(),
                                                 concertSeat.getStatus());

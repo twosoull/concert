@@ -3,15 +3,16 @@ package io.hhplus.concert.domain.service;
 import io.hhplus.concert.common.enums.SeatStatus;
 import io.hhplus.concert.domain.command.ReservationCommand;
 import io.hhplus.concert.domain.entity.*;
+import io.hhplus.concert.domain.handler.exception.RestApiException;
 import io.hhplus.concert.domain.respository.*;
-import io.hhplus.concert.presentation.dto.ReservationDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.RESOURCE_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -24,40 +25,34 @@ public class ReservationService {
     private final ConcertReservationRepository concertReservationRepository;
     private final UserRepository userRepository;
 
-    public ReservationDto.AvailableDateResponse availableDate(Long concertScheduleId) {
+    public ConcertSchedule getAvailableDate(Long concertScheduleId) {
         ConcertSchedule concertSchedule = concertScheduleRepository.findById(concertScheduleId);
-        return new ReservationDto.AvailableDateResponse(concertSchedule.getConcertScheduleId()
-                                                ,concertSchedule.getConcertAt());
+        return concertSchedule;
     }
 
-    public List<ReservationDto.AvailableSeatResponse> availableSeat(Long concertScheduleId) {
+    public List<ConcertSeat> getAvailableSeat(Long concertScheduleId) {
         List<ConcertSeat> findConcertSeats = concertSeatRepository
                 .findAllByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.UNASSIGNED);
 
-        return findConcertSeats.stream()
-                .map(s-> new ReservationDto.AvailableSeatResponse(concertScheduleId
-                        ,s.getId()
-                        ,s.getSeat())).toList();
+        return findConcertSeats;
     }
 
-    public ReservationCommand.Reserved reservation(ReservationCommand.Reservation reservation){
-        Concert concert = concertRepository.findById(reservation.concertId());
-        ConcertSchedule concertSchedule = concertScheduleRepository.findById(reservation.concertScheduleId());
-        User user = userRepository.findById(reservation.userId());
-        if(ObjectUtils.isEmpty(concert)
-           || ObjectUtils.isEmpty(concertSchedule)
-           ||ObjectUtils.isEmpty(user)){
-                throw new RuntimeException("잘못된 요청 입니다.");
+    public ConcertReservation reserve(ReservationCommand.reserve reserve){
+        Concert concert = concertRepository.findById(reserve.concertId());
+        ConcertSchedule concertSchedule = concertScheduleRepository.findById(reserve.concertScheduleId());
+        User user = userRepository.findById(reserve.userId());
+        if(concert == null || concertSchedule == null || user == null){
+                throw new RestApiException(RESOURCE_NOT_FOUND);
         }
 
         LocalDateTime now = LocalDateTime.now();
         ConcertReservation concertReservation = createConcertReservation(concertSchedule, concert, user, now);
-        ConcertReservation save = concertReservationRepository.save(concertReservation);
+        ConcertReservation saveConcertReservation = concertReservationRepository.save(concertReservation);
 
-        ConcertSeat concertSeat =  concertSeatRepository.findById(reservation.concertSeatId());
+        ConcertSeat concertSeat =  concertSeatRepository.findById(reserve.concertSeatId());
         concertSeat.seatStatusTemp(concertSchedule, now);
 
-        return ReservationCommand.of(save);
+        return saveConcertReservation;
     }
 
     private ConcertReservation createConcertReservation(ConcertSchedule concertSchedule, Concert concert, User user, LocalDateTime now) {

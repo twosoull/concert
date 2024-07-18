@@ -54,6 +54,16 @@ public class ConcertSeat {
         this.assignmentTime = assignmentTime;
     }
 
+    public ConcertSeat(ConcertSchedule concertSchedule, User user, Long seat, SeatStatus status, LocalDateTime tempAssignmentTime, LocalDateTime assignmentTime) {
+        this.concertSchedule = concertSchedule;
+        this.user = user;
+        this.seat = seat;
+        this.status = status;
+        this.tempAssignmentTime = tempAssignmentTime;
+        this.assignmentTime = assignmentTime;
+    }
+
+
     public void seatStatusTemp(ConcertSchedule concertSchedule, LocalDateTime now){
         this.concertSchedule = concertSchedule;
         this.status = SeatStatus.TEMP;

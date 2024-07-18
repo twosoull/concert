@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 public class ConcertReservation {
 
     @Id @GeneratedValue
-    private Long concertReservationId;
+    @Column(name = "concert_reservation_id")
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name="concert_schedule_id")

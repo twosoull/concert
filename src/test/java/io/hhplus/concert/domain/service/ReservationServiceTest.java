@@ -53,10 +53,10 @@ class ReservationServiceTest {
         doReturn(givenConcertSchedule).when(concertScheduleRepository).findById(any(Long.class));
 
         //when
-        ReservationDto.AvailableDateResponse availableDateResponse = reservationService.availableDate(concertScheduleId);
+        ConcertSchedule concertSchedule = reservationService.getAvailableDate(concertScheduleId);
 
         //then
-        assertEquals(concertScheduleId,availableDateResponse.concertScheduleId());
+        assertEquals(concertScheduleId,concertSchedule.getId());
     }
 
     @Test
@@ -80,12 +80,12 @@ class ReservationServiceTest {
         doReturn(concertSeats).when(concertSeatRepository).findAllByConcertScheduleIdAndStatus(any(Long.class),any(SeatStatus.class));
 
         //when
-        List<ReservationDto.AvailableSeatResponse> availableSeatResponses = reservationService.availableSeat(concertScheduleId);
+        List<ConcertSeat> findConcertSeats = reservationService.getAvailableSeat(concertScheduleId);
 
         //then
-        assertEquals(20,availableSeatResponses.size());
-        assertEquals(concertScheduleId,availableSeatResponses.get(0).concertScheduleId());
-        assertEquals(20L,availableSeatResponses.get(availableSeatResponses.size()-1).seat());
+        assertEquals(20,findConcertSeats.size());
+        assertEquals(concertScheduleId,findConcertSeats.get(0).getSeat());
+        assertEquals(20L,findConcertSeats.get(findConcertSeats.size()-1).getSeat());
     }
 
     @Test
@@ -113,12 +113,12 @@ class ReservationServiceTest {
         doReturn(givenConcertSeat).when(concertSeatRepository).findById(concertSeatId);
 
         doReturn(concertReservation).when(concertReservationRepository).save(any(ConcertReservation.class));
-        ReservationCommand.Reservation reservation = new ReservationCommand.Reservation(concertId, concertScheduleId, concertSeatId, userId);
+        ReservationCommand.reserve reservation = new ReservationCommand.reserve(concertId, concertScheduleId, concertSeatId, userId);
 
         //when
-        ReservationCommand.Reserved reserved = reservationService.reservation(reservation);
+        ConcertReservation reserveConcertReservation = reservationService.reserve(reservation);
 
-        assertEquals(concertTitle, concertTitle);
+        assertEquals(reserveConcertReservation.getConcertTitle(), concertTitle);
 
     }
 
@@ -143,11 +143,11 @@ class ReservationServiceTest {
 
         doReturn(null).when(concertRepository).findById(concertId);
 
-        ReservationCommand.Reservation reservation = new ReservationCommand.Reservation(concertId, concertScheduleId, concertSeatId, userId);
+        ReservationCommand.reserve reservation = new ReservationCommand.reserve(concertId, concertScheduleId, concertSeatId, userId);
 
         //when & then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            reservationService.reservation(reservation);
+            reservationService.reserve(reservation);
         });
 
         // 예외 메시지 검증

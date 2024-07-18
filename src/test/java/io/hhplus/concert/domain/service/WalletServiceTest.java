@@ -1,6 +1,5 @@
 package io.hhplus.concert.domain.service;
 
-import io.hhplus.concert.common.enums.TransactionType;
 import io.hhplus.concert.domain.command.WalletCommand;
 import io.hhplus.concert.domain.entity.User;
 import io.hhplus.concert.domain.entity.Wallet;
@@ -44,14 +43,14 @@ class WalletServiceTest {
         Wallet wallet = new Wallet(walletId, user, balance);
 
         doReturn(wallet).when(walletRepository).findByUserId(any(Long.class));
-        WalletCommand.balanceInfoReqDto userInfo = new WalletCommand.balanceInfoReqDto(userId);
+        WalletCommand.GetBalanceInfo userInfo = new WalletCommand.GetBalanceInfo(userId);
 
         //when
-        WalletCommand.balanceInfoResDto walletInfo = walletService.balanceInfo(userInfo);
+        Wallet findWallet = walletService.getBalanceInfo(userInfo);
 
         //then
-        assertEquals(walletId,walletInfo.userWalletId());
-        assertEquals(balance,walletInfo.balance());
+        assertEquals(walletId,findWallet.getId());
+        assertEquals(balance,findWallet.getBalance());
     }
 
     @Test
@@ -60,11 +59,11 @@ class WalletServiceTest {
         //given
         Long userId = 1L;
 
-        WalletCommand.balanceInfoReqDto userInfo = new WalletCommand.balanceInfoReqDto(userId);
+        WalletCommand.GetBalanceInfo userInfo = new WalletCommand.GetBalanceInfo(userId);
 
         //when & then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            walletService.balanceInfo(userInfo);
+            walletService.getBalanceInfo(userInfo);
         });
 
         // 예외 메시지 검증
@@ -96,10 +95,10 @@ class WalletServiceTest {
         );
         doReturn(walletHistory).when(walletHistoryRepository).save(any(WalletHistory.class));
 
-        WalletCommand.chargeReqDto chargeReqDto = new WalletCommand.chargeReqDto(userId, amount);
-        WalletCommand.chargeResDto chargeResDto = walletService.charge(chargeReqDto);
+        WalletCommand.GetChargeInfo chargeReqDto = new WalletCommand.GetChargeInfo(userId, amount);
+        WalletHistory chargeWallet = walletService.chargeWallet(chargeReqDto);
 
-        assertEquals(balanceAfter, chargeResDto.balance());
+        assertEquals(balanceAfter, chargeWallet.getBalanceAfter());
     }
 
     @Test
