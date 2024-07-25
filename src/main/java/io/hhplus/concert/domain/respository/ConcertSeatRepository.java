@@ -11,4 +11,7 @@ public interface ConcertSeatRepository {
 
     ConcertSeat findById(Long aLong);
 
+    ConcertSeat findByIdWithOptimisticLock(Long aLong);
+
+    ConcertSeat findByIdWithPessimisticLock(Long aLong);
 }
