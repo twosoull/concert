@@ -1,5 +1,7 @@
 package io.hhplus.concert.presentation.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.hhplus.concert.domain.command.TokenCommand;
 import io.hhplus.concert.domain.service.TokenService;
 import io.hhplus.concert.presentation.dto.TokenDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,30 +20,22 @@ public class TokenController {
 
     private final TokenService tokenService;
 
-    @PostMapping("/api/token/create")
-    public ResponseEntity<TokenDto.createTokenResponse> createToken(@RequestBody TokenDto.createTokenRequest tokenReqDto
-                                                            ,HttpServletResponse response) {
+    @PostMapping("/api/token")
+    public ResponseEntity<TokenDto.createTokenResponse> createToken(@RequestBody TokenDto.createTokenRequest tokenReqDto,
+                                                                    HttpServletResponse response) throws JsonProcessingException {
+
         TokenDto.createTokenResponse createTokenResponse = TokenDto.createResponse(tokenService.createToken(tokenReqDto.userId()));
         response.setHeader("Authorization", "Bearer " + createTokenResponse.token());
 
         return new ResponseEntity<>(createTokenResponse, HttpStatus.OK);
     }
 
-
     @GetMapping("/api/token/info")
     public ResponseEntity<TokenDto.infoTokenResponse> getTokeninfo(
-                                                    //@RequestBody TokenDto.infoTokenRequest tokenReqDto,
                                                     HttpServletRequest request) {
-        String token = request.getHeader("Authorization");
-        token = token.substring(7);
 
         return new ResponseEntity<>(
-                TokenDto.infoResponse(tokenService.getTokenInfo(token))
+                TokenDto.infoResponse(tokenService.getTokenInfo())
                 ,HttpStatus.OK);
-    }
-
-    //@PostMapping("/api/token/update")
-    public void update() {
-        //스케줄러 이용
     }
 }

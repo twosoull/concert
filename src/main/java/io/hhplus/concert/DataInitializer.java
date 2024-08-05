@@ -6,6 +6,7 @@ import io.hhplus.concert.domain.entity.*;
 import io.hhplus.concert.infrastructure.repositoryImpl.*;
 import io.hhplus.concert.infrastructure.repositoryORM.TokenJpaRepository;
 import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -16,25 +17,22 @@ import java.time.LocalDateTime;
 
 @Configuration
 @Transactional
+@RequiredArgsConstructor
 public class DataInitializer {
 
-    @Autowired
-    private UserRepositoryImpl userRepository;
+    private final UserRepositoryImpl userRepository;
 
-    @Autowired
-    private TokenRepositoryImpl tokenRepository;
+    private final TokenRepositoryImpl tokenRepository;
 
-    @Autowired
-    private ConcertRepositoryImpl concertRepository;
+    private final ConcertRepositoryImpl concertRepository;
 
-    @Autowired
-    private ConcertScheduleRepositoryImpl concertScheduleRepository;
+    private final ConcertScheduleRepositoryImpl concertScheduleRepository;
 
-    @Autowired
-    private ConcertSeatRepositoryImpl concertSeatRepository;
+    private final ConcertSeatRepositoryImpl concertSeatRepository;
 
-    @Autowired
-    private EntityManager em;
+    private final WalletRepositoryImpl walletRepository;
+    private final  EntityManager em;
+
     @Bean
     public CommandLineRunner initData() {
         return args -> {
@@ -44,11 +42,11 @@ public class DataInitializer {
                 userRepository.save(user);
                 Token token = null;
                 if( i <27L){
-                    token = Token.create(user,TokenStatus.ACTIVE);
+                    //token = Token.create(user,TokenStatus.ACTIVE);
                 }else{
-                    token = Token.create(user,TokenStatus.WAIT);
+                    //token = Token.create(user,TokenStatus.WAIT);
                 }
-                tokenRepository.save(token);
+                //tokenRepository.save(token);
             }
 
             for(Long i = 100L; i < 120L; i++) {
@@ -67,11 +65,12 @@ public class DataInitializer {
             ConcertSeat concertSeat = new ConcertSeat(concertSchedule,
                     null, 1L, SeatStatus.UNASSIGNED, null,null);
 
-            ConcertSeat concertSeat2 = new ConcertSeat(concertSchedule,
-                    null, 2L, SeatStatus.UNASSIGNED, null,null);
-
             concertSeatRepository.save(concertSeat);
-            concertSeatRepository.save(concertSeat2);
+
+            User user = userRepository.findById(1L);
+
+            Wallet wallet = new Wallet(user, 100000L);
+            walletRepository.save(wallet);
 
         };
     }

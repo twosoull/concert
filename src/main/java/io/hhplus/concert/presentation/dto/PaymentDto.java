@@ -32,7 +32,7 @@ public class PaymentDto {
     }
 
     public static PaymentCommand.Pay paymentReqToCommend(PaymentRequest paymentRequest) {
-        return new PaymentCommand.Pay(paymentRequest.userId(), paymentRequest.concertScheduleId(),
+        return new PaymentCommand.Pay(paymentRequest.concertScheduleId(),
                 paymentRequest.concertReservationId(), paymentRequest.seatId());
     }
 }

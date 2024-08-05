@@ -77,6 +77,7 @@ class OptimisticConCurrencyReservationServiceTest {
             // Mocking the token utility to return a user ID
             when(requestTokenUtil.getCurrentTokenUserId()).thenReturn(userId);
 
+            // 쓰레드 5개 던지면 5개 성공??
             executorService.execute(() -> {
                 try {
                     reservationService.reserve(new ReservationCommand.reserve(1L, 1L, 1L, "OPTIMISTIC"));

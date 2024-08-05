@@ -9,7 +9,8 @@ public class ReservationCommand {
 
     public record reserve(Long concertId
             , Long concertScheduleId
-            , Long concertSeatId){
+            , Long concertSeatId
+            , String LockType){
     }
     public record Reserved(
             Long concertReservationId

@@ -41,11 +41,18 @@ public class ConcertReservation {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
+    @Version
+    private Long version;
+
+
     public void setStatus(ReservationStatus status) {
         this.status = status;
     }
 
     public ConcertReservation() {
+    }
+
+    public ConcertReservation(Long concertReservationId, Object o, Object o1, User user, String concertTitle, String description, LocalDateTime concertAt, ReservationStatus reservationStatus, Long price, LocalDateTime now, Object o2) {
     }
 
     public static ConcertReservation createReserveStatusTemp(ConcertSchedule concertSchedule,User user, LocalDateTime now){

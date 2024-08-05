@@ -14,7 +14,7 @@ public class TokenScheduler {
     private final TokenService tokenService;
 
     //액티브 토큰 만료시간 확인
-    @Scheduled(fixedDelay = 1000)
+    //@Scheduled(fixedDelay = 1000)
     public void convertTokens() {
         log.info("[Scheduled] convertTokens -- start");
         tokenService.convertTokens();

@@ -3,9 +3,9 @@ package io.hhplus.concert.domain.service;
 import io.hhplus.concert.common.utils.RequestTokenUtil;
 import io.hhplus.concert.domain.command.PaymentCommand;
 import io.hhplus.concert.domain.entity.*;
+import io.hhplus.concert.domain.handler.exception.TokenException;
 import io.hhplus.concert.domain.respository.*;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.RESOURCE_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -27,15 +29,14 @@ public class PaymentService {
     private final TokenRepository tokenRepository;
     private final RequestTokenUtil requestTokenUtil;
     private final EntityManager entityManager;
+    private final RedisRepository redisRepository;
 
     @Transactional
     public PaymentCommand.getPaymentInfo pay(PaymentCommand.Pay pay) {
+        validToken();
         LocalDateTime now = LocalDateTime.now();
-        Token token = requestTokenUtil.getCurrentToken();
         Long currentTokenUserId = requestTokenUtil.getCurrentTokenUserId();
 
-        // 토큰을 만료 한다.
-        //token.expiration(now);
         //예약했던 콘서트일정 상태를 확정으로 만들어 준다.
         ConcertReservation concertReservation = concertReservationRepository.findById(pay.concertReservationId());
         concertReservation.setReserved();
@@ -94,5 +95,15 @@ public class PaymentService {
                 , now
         );
         return walletHistory;
+    }
+
+    private void validToken() {
+        String currentToken = requestTokenUtil.getCurrentToken();
+        boolean isActive = redisRepository.isActiveMember(currentToken);
+
+        //액티브에 없으면
+        if (!isActive) {
+            throw new TokenException(RESOURCE_NOT_FOUND);
+        }
     }
 }

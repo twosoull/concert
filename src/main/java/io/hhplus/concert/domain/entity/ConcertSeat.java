@@ -32,6 +32,10 @@ public class ConcertSeat {
 
     private LocalDateTime tempAssignmentTime;
     private LocalDateTime assignmentTime;
+
+    @Version
+    private Long version;
+
     public void setConcertSchedule(ConcertSchedule concertSchedule) {
         this.concertSchedule = concertSchedule;
     }
@@ -64,9 +68,10 @@ public class ConcertSeat {
     }
 
 
-    public void setSeatStatusTemp(ConcertSchedule concertSchedule, LocalDateTime now){
+    public void setSeatStatusTemp(ConcertSchedule concertSchedule, User user, LocalDateTime now){
         this.concertSchedule = concertSchedule;
         this.status = SeatStatus.TEMP;
+        this.user = user;
         this.tempAssignmentTime = now;
     }
 
