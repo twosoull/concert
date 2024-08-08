@@ -30,6 +30,7 @@ public class PaymentService {
     private final RequestTokenUtil requestTokenUtil;
     private final EntityManager entityManager;
     private final RedisRepository redisRepository;
+    private final DataPlatformMockApiClient dataPlatformMockApiClient;
 
     @Transactional
     public PaymentCommand.getPaymentInfo pay(PaymentCommand.Pay pay) {
@@ -37,20 +38,22 @@ public class PaymentService {
         LocalDateTime now = LocalDateTime.now();
         Long currentTokenUserId = requestTokenUtil.getCurrentTokenUserId();
 
-        //예약했던 콘서트일정 상태를 확정으로 만들어 준다.
+        // 콘서트 예약 (상태 확정으로 변경)
         ConcertReservation concertReservation = concertReservationRepository.findById(pay.concertReservationId());
-        concertReservation.setReserved();
+        concertReservation.reserved();
 
+        // 콘서트 자리 확정으로 해준다.
+        ConcertSeat concertSeat = concertSeatRepository.findById(pay.seatId());
+        concertSeat.setSeatStatusAssign(now);
+
+        // 금액 차감
         usePointWithOptimisticLock result = getUsePointWithOptimisticLock(currentTokenUserId, concertReservation, now);
 
         // 히스토리를 쌓는다.
         walletHistoryRepository.save(getWalletHistory(result.wallet(), result.price(), result.balanceBefore(), result.balanceAfter(), now));
 
-
-        // 콘서트 자리 확정으로 해준다.
-        ConcertSeat concertSeat = concertSeatRepository.findById(pay.seatId());
-        concertSeat.seatStatusAssign(now);
-
+        //메세지 플렛폼 추가
+        dataPlatformMockApiClient.sendOrder();
         return new PaymentCommand.getPaymentInfo(concertReservation.getConcertTitle(),
                                                 concertReservation.getDescription(),
                                                 concertReservation.getConcertAt(),
