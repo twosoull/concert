@@ -69,7 +69,7 @@ public class ConcertReservation {
                 .build();
     }
 
-    public void setReserved() {
+    public void reserved() {
         if(this.status == ReservationStatus.RESERVED){
             throw new RuntimeException("이미 예약 된 좌석 입니다.");
         }

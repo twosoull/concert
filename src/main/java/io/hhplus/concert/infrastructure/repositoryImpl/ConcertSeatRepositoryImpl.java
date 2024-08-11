@@ -52,6 +52,11 @@ public class ConcertSeatRepositoryImpl implements ConcertSeatRepository {
         );
     }
 
+    @Override
+    public void saveAll(List<ConcertSeat> concertSeats) {
+        concertSeatJpaRepository.saveAll(concertSeats);
+    }
+
     public ConcertSeat save(ConcertSeat concertSeat) {
         return concertSeatJpaRepository.save(concertSeat);
     }

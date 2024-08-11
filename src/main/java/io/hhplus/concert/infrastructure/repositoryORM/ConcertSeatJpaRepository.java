@@ -16,6 +16,9 @@ public interface ConcertSeatJpaRepository extends JpaRepository<ConcertSeat,Long
     @Query("select s from ConcertSeat s where s.concertSchedule.id = :concertScheduleId and s.status = :status")
     List<ConcertSeat> findAllByConcertScheduleIdAndStatus(@Param("concertScheduleId") Long concertScheduleId, @Param("status")SeatStatus status);
 
+    @Query("SELECT s FROM ConcertSeat s JOIN FETCH s.concertSchedule cs WHERE cs.concert.id = :concertId AND s.status = :status")
+    List<ConcertSeat> findAllByConcertIdAndStatus(@Param("concertId") Long concertId, @Param("status")SeatStatus status);
+
     @Lock(LockModeType.OPTIMISTIC)
     @Query("select s from ConcertSeat s where s.id = :id")
     Optional<ConcertSeat> findByIdWithOptimisticLock(@Param("id") Long id);

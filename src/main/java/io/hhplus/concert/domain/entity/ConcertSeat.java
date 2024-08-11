@@ -36,6 +36,14 @@ public class ConcertSeat {
     @Version
     private Long version;
 
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
     public void setConcertSchedule(ConcertSchedule concertSchedule) {
         this.concertSchedule = concertSchedule;
     }
@@ -48,7 +56,7 @@ public class ConcertSeat {
         this.tempAssignmentTime = tempAssignmentTime;
     }
 
-    public ConcertSeat(Long id, ConcertSchedule concertSchedule, User user, Long seat, SeatStatus status, LocalDateTime tempAssignmentTime, LocalDateTime assignmentTime) {
+    public ConcertSeat(Long id, ConcertSchedule concertSchedule, User user, Long seat, SeatStatus status, LocalDateTime tempAssignmentTime, LocalDateTime assignmentTime, Long version) {
         this.id = id;
         this.concertSchedule = concertSchedule;
         this.user = user;
@@ -56,6 +64,7 @@ public class ConcertSeat {
         this.status = status;
         this.tempAssignmentTime = tempAssignmentTime;
         this.assignmentTime = assignmentTime;
+        this.version = version;
     }
 
     public ConcertSeat(ConcertSchedule concertSchedule, User user, Long seat, SeatStatus status, LocalDateTime tempAssignmentTime, LocalDateTime assignmentTime) {
@@ -75,7 +84,7 @@ public class ConcertSeat {
         this.tempAssignmentTime = now;
     }
 
-    public void seatStatusAssign(LocalDateTime now){
+    public void setSeatStatusAssign(LocalDateTime now){
         this.status = SeatStatus.ASSIGNED;
         this.assignmentTime = now;
     }

@@ -12,6 +12,7 @@ public enum CommonErrorCode implements ErrorCode {
 
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST.value(),HttpStatus.BAD_REQUEST, "파라미터 확인이 필요합니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND, "조회된 토큰 값이 없습니다."),
+    CONCERT_DATE_NOT_FOUND(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND, "해당 콘서트 일자를 찾을 수 없습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
     UNABLE_CALCULATE_ORDER(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "대기열 순서를 찾을 수 없습니다."),
     NEGATIVE_VALUE(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "대기열 순서를 찾을 수 없습니다."),

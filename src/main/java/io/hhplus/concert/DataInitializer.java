@@ -14,8 +14,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@Configuration
+//@Configuration
 @Transactional
 @RequiredArgsConstructor
 public class DataInitializer {
@@ -35,9 +37,11 @@ public class DataInitializer {
 
     @Bean
     public CommandLineRunner initData() {
+
+
         return args -> {
 
-            for(Long i = 1L; i < 100L; i++){
+            for(Long i = 1L; i < 2L; i++){
                 User user = new User(i,"dsa","fasd");
                 userRepository.save(user);
                 Token token = null;
@@ -48,24 +52,31 @@ public class DataInitializer {
                 }
                 //tokenRepository.save(token);
             }
-
+/*
             for(Long i = 100L; i < 120L; i++) {
                 User user = new User(i, "dsa", "fasd");
                 userRepository.save(user);
             }
+*/
+            for (Long i = 1L; i <= 1L; i++) {
+                Concert concert = new Concert(i, "향해하는 남자", "욕심은 버려라, 할 수 있는 만큼만 해보자");
+                concertRepository.save(concert);
 
-            Concert concert = new Concert(1L, "향해하는 남자", "욕심은 버려라, 할 수 있는 만큼만 해보자");
-            concertRepository.save(concert);
+                Long concertScheduleId = (i - 1) * 2L + 1L;
+                for (Long j = 0L; j < 2L; j++) {
+                    ConcertSchedule concertSchedule = new ConcertSchedule(concertScheduleId + j, concert, LocalDateTime.now(), 100L, 10000L, LocalDateTime.now(), LocalDateTime.now(),concertScheduleId);
+                    concertScheduleRepository.save(concertSchedule);
 
-            ConcertSchedule concertSchedule = new ConcertSchedule(concert, LocalDateTime.now(),100L
-                    ,10000L,LocalDateTime.now(),LocalDateTime.now());
+                    Long concertSeatIdStart = (i - 1) * 3L + j * 3L + 1L;  // 수정된 계산 방식
+                    List<ConcertSeat> concertSeats = new ArrayList<>();
+                    for (Long s = 0L; s < 3L; s++) {
+                        ConcertSeat concertSeat = new ConcertSeat(concertSeatIdStart + s, concertSchedule, null, 1L, SeatStatus.UNASSIGNED, null, null,concertSeatIdStart + s);
+                        concertSeats.add(concertSeat);
 
-            concertScheduleRepository.save(concertSchedule);
-
-            ConcertSeat concertSeat = new ConcertSeat(concertSchedule,
-                    null, 1L, SeatStatus.UNASSIGNED, null,null);
-
-            concertSeatRepository.save(concertSeat);
+                        concertSeatRepository.save(concertSeat);
+                    }
+                }
+            }
 
             User user = userRepository.findById(1L);
 

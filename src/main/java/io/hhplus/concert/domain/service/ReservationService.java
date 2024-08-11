@@ -35,10 +35,10 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final RequestTokenUtil requestTokenUtil;
     private final RedisRepository redisRepository;
-    public ConcertSchedule getAvailableDate(Long concertScheduleId) {
+    public List<ConcertSchedule> getAvailableDate(Long concertId) {
         validToken();
-        ConcertSchedule concertSchedule = concertScheduleRepository.findById(concertScheduleId);
-        return concertSchedule;
+        List<ConcertSchedule> concertSchedules = concertScheduleRepository.findByConcertId(concertId);
+        return concertSchedules;
     }
 
     public List<ConcertSeat> getAvailableSeat(Long concertScheduleId) {
@@ -47,6 +47,7 @@ public class ReservationService {
                 .findAllByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.UNASSIGNED);
         return findConcertSeats;
     }
+
     @Transactional
     public ConcertReservation reserve(ReservationCommand.reserve reserve){
         validToken();
@@ -56,14 +57,8 @@ public class ReservationService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        if(reserve.LockType().equals("OPTIMISTIC"))
+
             return SeatTempReservationWithOptimisticLock(reserve.concertSeatId(), user, concertSchedule, now);
-
-        if(reserve.LockType().equals("PESSIMISTIC"))
-            return SeatTempReservationWithPessimisticLock(reserve.concertSeatId(), user, concertSchedule, now);
-
-        return SeatTempReservation(reserve, user, concertSchedule, now);
-
     }
 
     private ConcertReservation SeatTempReservationWithOptimisticLock(Long concertSeatId, User user, ConcertSchedule concertSchedule, LocalDateTime now) {
@@ -122,5 +117,13 @@ public class ReservationService {
         if (!isActive) {
             throw new TokenException(RESOURCE_NOT_FOUND);
         }
+    }
+
+    public void reserved(ConcertReservation concertReservation, ConcertSeat concertSeat, LocalDateTime now) {
+        log.info("reserved test");
+        // 콘서트 예약 (상태 확정으로 변경)
+        concertReservation.reserved();
+        // 콘서트 자리 예약 (상태 확정으로 변경)
+        concertSeat.setSeatStatusAssign(now);
     }
 }

@@ -24,6 +24,9 @@ public class ConcertSchedule {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
+    @Version
+    private Long version;
+
     public ConcertSchedule() {
     }
 
@@ -36,7 +39,7 @@ public class ConcertSchedule {
         this.updateAt = updateAt;
     }
 
-    public ConcertSchedule(Long id, Concert concert, LocalDateTime concertAt, Long totalAvailable, Long price, LocalDateTime createAt, LocalDateTime updateAt) {
+    public ConcertSchedule(Long id, Concert concert, LocalDateTime concertAt, Long totalAvailable, Long price, LocalDateTime createAt, LocalDateTime updateAt, Long version) {
         this.id = id;
         this.concert = concert;
         this.concertAt = concertAt;
@@ -44,5 +47,6 @@ public class ConcertSchedule {
         this.price = price;
         this.createAt = createAt;
         this.updateAt = updateAt;
+        this.version = version;
     }
 }

@@ -3,11 +3,13 @@ package io.hhplus.concert.domain.service;
 import io.hhplus.concert.common.utils.RequestTokenUtil;
 import io.hhplus.concert.domain.command.PaymentCommand;
 import io.hhplus.concert.domain.entity.*;
+import io.hhplus.concert.domain.event.ReservationEvent;
 import io.hhplus.concert.domain.handler.exception.TokenException;
 import io.hhplus.concert.domain.respository.*;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,19 +34,17 @@ public class PaymentService {
     private final RedisRepository redisRepository;
     private final DataPlatformMockApiClient dataPlatformMockApiClient;
 
+    private final ReservationService reservationService;
+    private final ApplicationEventPublisher eventPublisher;
+
     @Transactional
     public PaymentCommand.getPaymentInfo pay(PaymentCommand.Pay pay) {
         validToken();
         LocalDateTime now = LocalDateTime.now();
         Long currentTokenUserId = requestTokenUtil.getCurrentTokenUserId();
-
-        // 콘서트 예약 (상태 확정으로 변경)
         ConcertReservation concertReservation = concertReservationRepository.findById(pay.concertReservationId());
-        concertReservation.reserved();
 
-        // 콘서트 자리 확정으로 해준다.
         ConcertSeat concertSeat = concertSeatRepository.findById(pay.seatId());
-        concertSeat.setSeatStatusAssign(now);
 
         // 금액 차감
         usePointWithOptimisticLock result = getUsePointWithOptimisticLock(currentTokenUserId, concertReservation, now);
@@ -52,8 +52,13 @@ public class PaymentService {
         // 히스토리를 쌓는다.
         walletHistoryRepository.save(getWalletHistory(result.wallet(), result.price(), result.balanceBefore(), result.balanceAfter(), now));
 
+        eventPublisher.publishEvent(new ReservationEvent(this,concertReservation,concertSeat,now));
+
+        //주석 걸고.. 실패 로직 작성
+        // 그리고 카프카 걸기
+
         //메세지 플렛폼 추가
-        dataPlatformMockApiClient.sendOrder();
+        //dataPlatformMockApiClient.sendOrder();
         return new PaymentCommand.getPaymentInfo(concertReservation.getConcertTitle(),
                                                 concertReservation.getDescription(),
                                                 concertReservation.getConcertAt(),
