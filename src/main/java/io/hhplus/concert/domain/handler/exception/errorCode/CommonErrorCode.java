@@ -19,7 +19,8 @@ public enum CommonErrorCode implements ErrorCode {
     NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "토큰이 없습니다."),
     EXPIRED_TOKEN(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "만료된 토큰입니다."),
     SEAT_ALREADY_RESERVED(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "이미 예약된 좌석입니다."),
-    TOKEN_ALREADY_CREATE(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "이미 등록된 토큰이 있습니다.");
+    TOKEN_ALREADY_CREATE(HttpStatus.NOT_FOUND.value(),HttpStatus.INTERNAL_SERVER_ERROR, "이미 등록된 토큰이 있습니다."),
+    KAFKA_PRODUCER_FAIL(HttpStatus.NOT_FOUND.value(),HttpStatus.NOT_FOUND, "메세지 발행에 실패했습니다.");
 
     private final int status;
     private final HttpStatus httpStatus;
