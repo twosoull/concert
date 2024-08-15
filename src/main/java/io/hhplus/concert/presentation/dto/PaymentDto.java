@@ -15,9 +15,7 @@ public class PaymentDto {
                                 ReservationStatus reservationStatus,
                                 Long price,
                                 Long balance,
-                                LocalDateTime PaymentTime,
-                                Long seat,
-                                SeatStatus seatStatus){}
+                                LocalDateTime PaymentTime){}
 
     public static PaymentResponse paymentResponseOf(PaymentCommand.getPaymentInfo info){
         return new PaymentResponse(info.concertTitle(),
@@ -26,9 +24,7 @@ public class PaymentDto {
                 info.reservationStatus(),
                 info.price(),
                 info.balance(),
-                info.PaymentTime(),
-                info.seat(),
-                info.seatStatus());
+                info.PaymentTime());
     }
 
     public static PaymentCommand.Pay paymentReqToCommend(PaymentRequest paymentRequest) {

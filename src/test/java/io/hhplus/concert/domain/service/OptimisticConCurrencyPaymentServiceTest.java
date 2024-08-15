@@ -1,7 +1,6 @@
 package io.hhplus.concert.domain.service;
 
 import io.hhplus.concert.ConcertApplication;
-import io.hhplus.concert.common.enums.SeatStatus;
 import io.hhplus.concert.common.utils.RequestTokenUtil;
 import io.hhplus.concert.domain.command.PaymentCommand;
 import io.hhplus.concert.domain.entity.*;

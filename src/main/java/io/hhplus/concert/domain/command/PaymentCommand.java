@@ -16,8 +16,6 @@ public class PaymentCommand {
                                 ReservationStatus reservationStatus,
                                 Long price,
                                 Long balance,
-                                LocalDateTime PaymentTime,
-                                Long seat,
-                                SeatStatus seatStatus){}
+                                LocalDateTime PaymentTime){}
 
 }

@@ -119,8 +119,12 @@ public class ReservationService {
         }
     }
 
-    public void reserved(ConcertReservation concertReservation, ConcertSeat concertSeat, LocalDateTime now) {
-        log.info("reserved test");
+    //이벤트에서 호출됌
+    @Transactional
+    public void reserved(Long concertReservationId, Long concertSeatId, LocalDateTime now) {
+        ConcertReservation concertReservation = concertReservationRepository.findById(concertReservationId);
+        ConcertSeat concertSeat = concertSeatRepository.findById(concertSeatId);
+
         // 콘서트 예약 (상태 확정으로 변경)
         concertReservation.reserved();
         // 콘서트 자리 예약 (상태 확정으로 변경)

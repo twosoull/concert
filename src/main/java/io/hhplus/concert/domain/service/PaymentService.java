@@ -3,7 +3,7 @@ package io.hhplus.concert.domain.service;
 import io.hhplus.concert.common.utils.RequestTokenUtil;
 import io.hhplus.concert.domain.command.PaymentCommand;
 import io.hhplus.concert.domain.entity.*;
-import io.hhplus.concert.domain.event.ReservationEvent;
+import io.hhplus.concert.domain.event.PaymentEvent;
 import io.hhplus.concert.domain.handler.exception.TokenException;
 import io.hhplus.concert.domain.respository.*;
 import jakarta.persistence.EntityManager;
@@ -26,36 +26,26 @@ public class PaymentService {
     private final WalletRepository walletRepository;
     private final WalletHistoryRepository walletHistoryRepository;
     private final ConcertReservationRepository concertReservationRepository;
-    private final ConcertSeatRepository concertSeatRepository;
-    private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
     private final RequestTokenUtil requestTokenUtil;
     private final EntityManager entityManager;
     private final RedisRepository redisRepository;
     private final DataPlatformMockApiClient dataPlatformMockApiClient;
 
-    private final ReservationService reservationService;
     private final ApplicationEventPublisher eventPublisher;
-
+    private final PaymentOutboxRepository paymentOutboxRepository;
     @Transactional
     public PaymentCommand.getPaymentInfo pay(PaymentCommand.Pay pay) {
-        validToken();
+        //validToken();
         LocalDateTime now = LocalDateTime.now();
         Long currentTokenUserId = requestTokenUtil.getCurrentTokenUserId();
         ConcertReservation concertReservation = concertReservationRepository.findById(pay.concertReservationId());
-
-        ConcertSeat concertSeat = concertSeatRepository.findById(pay.seatId());
 
         // 금액 차감
         usePointWithOptimisticLock result = getUsePointWithOptimisticLock(currentTokenUserId, concertReservation, now);
 
         // 히스토리를 쌓는다.
         walletHistoryRepository.save(getWalletHistory(result.wallet(), result.price(), result.balanceBefore(), result.balanceAfter(), now));
-
-        eventPublisher.publishEvent(new ReservationEvent(this,concertReservation,concertSeat,now));
-
-        //주석 걸고.. 실패 로직 작성
-        // 그리고 카프카 걸기
+        eventPublisher.publishEvent(new PaymentEvent(this,pay.concertReservationId(),pay.seatId(),now,null));
 
         //메세지 플렛폼 추가
         //dataPlatformMockApiClient.sendOrder();
@@ -65,9 +55,8 @@ public class PaymentService {
                                                 concertReservation.getStatus(),
                                                 result.price(),
                                                 result.balanceAfter(),
-                                                result.wallet().getLastUpdateAt(),
-                                                concertSeat.getSeat(),
-                                                concertSeat.getStatus());
+                                                result.wallet().getLastUpdateAt()
+                                                );
     }
 
     private usePointWithOptimisticLock getUsePointWithOptimisticLock(Long userId, ConcertReservation concertReservation, LocalDateTime now) {
