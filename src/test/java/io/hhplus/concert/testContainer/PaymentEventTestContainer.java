@@ -7,6 +7,7 @@ import io.hhplus.concert.domain.entity.PaymentOutBox;
 import io.hhplus.concert.domain.message.PaymentMessage;
 import io.hhplus.concert.domain.respository.PaymentOutboxRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,7 +62,8 @@ public class PaymentEventTestContainer {
     }
 
     @Test
-    void shouldHandleProductPriceChangedEvent() throws JsonProcessingException {
+    @DisplayName("kafka로 보낸 메세지를 아웃박스 컨슘이 읽어들여 상태를 업데이트한다.")
+    void kafkaPaymentEventOutBoxConsum_test() throws JsonProcessingException {
         Long concertReservationId = 1L;
         Long concertSeatId = 1L;
         String parsedLocalDateTimeNow = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
