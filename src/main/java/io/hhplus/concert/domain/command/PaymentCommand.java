@@ -8,7 +8,7 @@ import io.hhplus.concert.domain.entity.WalletHistory;
 import java.time.LocalDateTime;
 
 public class PaymentCommand {
-    public record Pay(Long userId, Long concertScheduleId, Long concertReservationId, Long seatId){
+    public record Pay(Long concertScheduleId, Long concertReservationId, Long seatId){
     }
     public record getPaymentInfo(String concertTitle,
                                 String description,
@@ -16,8 +16,6 @@ public class PaymentCommand {
                                 ReservationStatus reservationStatus,
                                 Long price,
                                 Long balance,
-                                LocalDateTime PaymentTime,
-                                Long seat,
-                                SeatStatus seatStatus){}
+                                LocalDateTime PaymentTime){}
 
 }

@@ -8,15 +8,10 @@ import java.time.LocalDateTime;
 public class TokenCommand {
 
     public record TokenReqDto () {}
-    public record TokenCreateResDto(Long id, Long userId, String token, Long order, LocalDateTime accessTime, TokenStatus status) {
+    public record TokenCreateResDto(String token, Long order, int waitingTimeSeconds) {
     }
     public record CheckTokenResultDto(TokenStatus status, Long tokenId, int count){}
-    public static TokenCreateResDto tokenInfo(Token token, Long order){
-        return new TokenCreateResDto(token.getId()
-                ,token.getUser().getId()
-                , token.getToken()
-                , order
-                , token.getAccessTime()
-                , token.getStatus());
+    public static TokenCreateResDto tokenInfo(String token, Long order, int waitingTimeSeconds){
+        return new TokenCreateResDto(token,order, waitingTimeSeconds);
     }
 }

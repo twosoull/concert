@@ -32,7 +32,4 @@ public class WalletDto {
                 , walletHistory.getTransactionDate());
     }
 
-    public static WalletCommand.GetBalanceInfo BalanceInfoToCommend(BalanceInfoRequest balanceInfoRequest) {
-        return new WalletCommand.GetBalanceInfo(balanceInfoRequest.userId());
-    }
 }

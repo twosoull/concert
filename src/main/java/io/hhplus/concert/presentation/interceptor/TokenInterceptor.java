@@ -1,14 +1,14 @@
 package io.hhplus.concert.presentation.interceptor;
 
 import io.hhplus.concert.common.enums.TokenStatus;
+import io.hhplus.concert.common.utils.RequestTokenHolder;
 import io.hhplus.concert.domain.entity.Token;
 import io.hhplus.concert.domain.handler.exception.TokenException;
 import io.hhplus.concert.domain.respository.TokenRepository;
-import io.hhplus.concert.domain.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,10 +21,11 @@ import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCo
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class TokenInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    private TokenRepository tokenRepository;
+    private final RequestTokenHolder requestTokenHolder;
+    private final TokenRepository tokenRepository;
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
@@ -44,18 +45,14 @@ public class TokenInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7); // "Bearer " 부분 제거
+            requestTokenHolder.setToken(token);
         }else{
             throw new TokenException(NOT_FOUND_TOKEN);
-        }
-        Token findToken = tokenRepository.findByToken(token);
-        if(isTokenExpired(findToken)){
-            findToken.setStatus(TokenStatus.EXPIRATION);
-            throw new TokenException(EXPIRED_TOKEN);
         }
 
         return true;
     }
-
+/*
     //액티브 된 토큰의 시간이 5분 지났는지 판단 한다.
     public boolean isTokenExpired(Token token) {
         LocalDateTime issuedAt =
@@ -65,5 +62,5 @@ public class TokenInterceptor implements HandlerInterceptor {
         LocalDateTime now = LocalDateTime.now();
         Duration duration = Duration.between(issuedAt, now);
         return duration.toMinutes() >= 5;
-    }
+    }*/
 }

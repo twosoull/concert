@@ -1,11 +1,19 @@
 package io.hhplus.concert.domain.service;
 
 import io.hhplus.concert.common.enums.SeatStatus;
+import io.hhplus.concert.common.utils.RequestTokenUtil;
 import io.hhplus.concert.domain.command.ReservationCommand;
+import io.hhplus.concert.domain.command.TokenCommand;
 import io.hhplus.concert.domain.entity.*;
 import io.hhplus.concert.domain.handler.exception.RestApiException;
+import io.hhplus.concert.domain.handler.exception.TokenException;
+import io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode;
 import io.hhplus.concert.domain.respository.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,51 +21,113 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.RESOURCE_NOT_FOUND;
+import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.SEAT_ALREADY_RESERVED;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Slf4j
 public class ReservationService {
-
+    private final EntityManager entityManager;
     private final ConcertScheduleRepository concertScheduleRepository;
     private final ConcertSeatRepository concertSeatRepository;
     private final ConcertRepository concertRepository;
     private final ConcertReservationRepository concertReservationRepository;
     private final UserRepository userRepository;
-
-    public ConcertSchedule getAvailableDate(Long concertScheduleId) {
-        ConcertSchedule concertSchedule = concertScheduleRepository.findById(concertScheduleId);
-        return concertSchedule;
+    private final RequestTokenUtil requestTokenUtil;
+    private final RedisRepository redisRepository;
+    public List<ConcertSchedule> getAvailableDate(Long concertId) {
+        validToken();
+        List<ConcertSchedule> concertSchedules = concertScheduleRepository.findByConcertId(concertId);
+        return concertSchedules;
     }
 
     public List<ConcertSeat> getAvailableSeat(Long concertScheduleId) {
+        validToken();
         List<ConcertSeat> findConcertSeats = concertSeatRepository
                 .findAllByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.UNASSIGNED);
-
         return findConcertSeats;
     }
 
+    @Transactional
     public ConcertReservation reserve(ReservationCommand.reserve reserve){
-        Concert concert = concertRepository.findById(reserve.concertId());
+        validToken();
+        Long currentTokenUserId = requestTokenUtil.getCurrentTokenUserId();
+        User user = userRepository.findById(currentTokenUserId);
         ConcertSchedule concertSchedule = concertScheduleRepository.findById(reserve.concertScheduleId());
-        User user = userRepository.findById(reserve.userId());
-        if(concert == null || concertSchedule == null || user == null){
-                throw new RestApiException(RESOURCE_NOT_FOUND);
-        }
 
         LocalDateTime now = LocalDateTime.now();
-        ConcertReservation concertReservation = createConcertReservation(concertSchedule, concert, user, now);
-        ConcertReservation saveConcertReservation = concertReservationRepository.save(concertReservation);
 
+
+            return SeatTempReservationWithOptimisticLock(reserve.concertSeatId(), user, concertSchedule, now);
+    }
+
+    private ConcertReservation SeatTempReservationWithOptimisticLock(Long concertSeatId, User user, ConcertSchedule concertSchedule, LocalDateTime now) {
+        try {
+            // 낙관적 락 예외가 발생할 수 있는 부분
+            ConcertSeat concertSeat = concertSeatRepository.findByIdWithOptimisticLock(concertSeatId);
+            concertSeat.setSeatStatusTemp(concertSchedule, user, now);
+
+            // 즉시 플러시
+            entityManager.flush();
+
+            // 이후 로직
+            ConcertReservation concertReservation = ConcertReservation.createReserveStatusTemp(concertSchedule, user, now);
+            return concertReservationRepository.save(concertReservation);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            // 예외 메시지와 스택 트레이스를 로그에 기록
+            log.error("Optimistic locking failure for user: {}", user.getId(), e);
+            throw new RestApiException(SEAT_ALREADY_RESERVED);
+        }
+    }
+
+
+    private ConcertReservation SeatTempReservationWithPessimisticLock(Long concertSeatId, User user, ConcertSchedule concertSchedule, LocalDateTime now) {
+        ConcertSeat concertSeat =  concertSeatRepository.findByIdWithPessimisticLock(concertSeatId);
+        if(!concertSeat.getStatus().equals(SeatStatus.UNASSIGNED)){
+            log.error("이미 예약된 좌석입니다. userId: {} ", user.getId());
+            throw new RestApiException(SEAT_ALREADY_RESERVED);
+        }
+        log.error(" 저장 통과 userId: {} ", user.getId());
+        concertSeat.setSeatStatusTemp(concertSchedule, user, now);
+
+        ConcertReservation concertReservation = ConcertReservation.createReserveStatusTemp(concertSchedule, user, now);
+        return concertReservationRepository.save(concertReservation);
+
+    }
+
+    private ConcertReservation SeatTempReservation(ReservationCommand.reserve reserve, User user, ConcertSchedule concertSchedule, LocalDateTime now) {
         ConcertSeat concertSeat =  concertSeatRepository.findById(reserve.concertSeatId());
-        concertSeat.seatStatusTemp(concertSchedule, now);
+        if(!concertSeat.getStatus().equals(SeatStatus.UNASSIGNED)){
+            log.error("이미 예약된 좌석입니다. userId: {} ", user.getId());
+            throw new RestApiException(SEAT_ALREADY_RESERVED);
+        }
+        log.error(" 저장 통과 userId: {} ", user.getId());
+        concertSeat.setSeatStatusTemp(concertSchedule, user, now);
 
-        return saveConcertReservation;
+        ConcertReservation concertReservation = ConcertReservation.createReserveStatusTemp(concertSchedule, user, now);
+        return concertReservationRepository.save(concertReservation);
+
     }
 
-    private ConcertReservation createConcertReservation(ConcertSchedule concertSchedule, Concert concert, User user, LocalDateTime now) {
-        return ConcertReservation.reserveStatusTemp(concertSchedule, concert, user, concert.getConcertTitle(),
-                concert.getDescription(), concertSchedule.getConcertAt(), concertSchedule.getPrice(), now);
+    private void validToken() {
+        String currentToken = requestTokenUtil.getCurrentToken();
+        boolean isActive = redisRepository.isActiveMember(currentToken);
+
+        //액티브에 없으면
+        if (!isActive) {
+            throw new TokenException(RESOURCE_NOT_FOUND);
+        }
     }
 
+    //이벤트에서 호출됌
+    @Transactional
+    public void reserved(Long concertReservationId, Long concertSeatId, LocalDateTime now) {
+        ConcertReservation concertReservation = concertReservationRepository.findById(concertReservationId);
+        ConcertSeat concertSeat = concertSeatRepository.findById(concertSeatId);
+
+        // 콘서트 예약 (상태 확정으로 변경)
+        concertReservation.reserved();
+        // 콘서트 자리 예약 (상태 확정으로 변경)
+        concertSeat.setSeatStatusAssign(now);
+    }
 }
