@@ -4,6 +4,7 @@ import io.hhplus.concert.common.enums.TokenStatus;
 import io.hhplus.concert.domain.command.TokenCommand;
 import io.hhplus.concert.domain.entity.Token;
 import io.hhplus.concert.domain.entity.User;
+import io.hhplus.concert.domain.handler.exception.TokenException;
 import io.hhplus.concert.domain.respository.TokenRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.RESOURCE_NOT_FOUND;
+
 
 @Service
 @Slf4j
@@ -26,25 +29,25 @@ public class TokenService {
 
     private final TokenRepository tokenRepository;
 
-    public TokenCommand.TokenCreateResDto info(Long userId) {
+    public TokenCommand.TokenCreateResDto getTokenInfo(String token) {
 
-        Token token = tokenRepository.findByUserId(userId);
+        Token findToken = tokenRepository.findByToken(token);
 
-        if (token.getStatus() == TokenStatus.WAIT ){
-            long order = findOrder(token);
-            return TokenCommand.createOf(token, order);
+        if (findToken.getStatus() == TokenStatus.WAIT ){
+            long order = findOrder(findToken);
+            return TokenCommand.tokenInfo(findToken, order);
         }
-        return TokenCommand.createOf(token, 0L);
+        return TokenCommand.tokenInfo(findToken, 0L);
     }
 
-    public TokenCommand.TokenCreateResDto create(Long userId) {
+    public TokenCommand.TokenCreateResDto createToken(Long userId) {
         //유저가 없으므로 자동생성 유저
         User user = new User(userId, "1234", "향해99");
 
         //토큰 active 수 파악
         TokenStatus status = getTokenStatus();
 
-        Token token = tokenRepository.findByUserIdAndStatus(userId, TokenStatus.WAIT);
+        Token token = tokenRepository.findByUserId(userId);
         //토큰이 이미 존재할 경우
         if (!ObjectUtils.isEmpty(token)) {
             //토큰이 이미 active일 경우에는 updateAt 비교
@@ -59,7 +62,7 @@ public class TokenService {
                 order = findOrder(token);
             }
 
-            return TokenCommand.createOf(token, order);
+            return TokenCommand.tokenInfo(token, order);
         } else {
             //토큰 발급
             Token saveToken = tokenRepository.save(Token.create(user, status));
@@ -73,8 +76,8 @@ public class TokenService {
                 order = findOrder(saveToken);
             }
 
-
-            return TokenCommand.createOf(saveToken, order);
+            //만료일 경우 다시 생성 로직 넣어야 함
+            return TokenCommand.tokenInfo(saveToken, order);
         }
     }
 
@@ -82,7 +85,6 @@ public class TokenService {
         LocalDateTime issuedAt =
                 token.getStatus() == TokenStatus.ACTIVE ? token.getUpdateAt()
                         : token.getAccessTime();
-
         return issuedAt;
     }
 
@@ -91,11 +93,33 @@ public class TokenService {
     private TokenStatus getTokenStatus() {
         List<Token> tokens = tokenRepository.findAllByStatus(TokenStatus.ACTIVE);
         if (tokens.size() < 30) {
-            return TokenStatus.ACTIVE;
+            List<Token> waitTokens = tokenRepository.findAllByStatus(TokenStatus.WAIT);
+            if( waitTokens.size() == 0){
+                return TokenStatus.ACTIVE;
+            }
         }
         return TokenStatus.WAIT;
     }
 
+    public void activeTokenIfInOrder(){
+        TokenCommand.CheckTokenResultDto resultDto = tokenRepository.findByActiveTokenAndCountAndTopId();
+
+        TokenStatus status = resultDto.status();
+        int activeCount = resultDto.count();
+        Long activeLastUserId = resultDto.tokenId();
+
+        if( activeCount < 30) {
+            Long passCount = 30L - activeCount;
+            Long firstId = activeLastUserId + 1;
+            Long lastId = activeLastUserId + passCount;
+
+            int i = tokenRepository.updateTokenStatusActive(firstId, lastId);
+        }
+
+    }
+
+
+    //토큰 시간이 5분 지났는지 판단한다.
     public boolean isTokenExpired(Token token) {
         LocalDateTime issuedAt =
                 token.getStatus() == TokenStatus.ACTIVE ? token.getUpdateAt()
@@ -109,10 +133,10 @@ public class TokenService {
     //내 순번 찾기
     public long findOrder(Token token) {
         Token topToken = tokenRepository.findTopStatusWait();
-        long order = token.getId() - topToken.getId();
+        long order = token.getId() - topToken.getId() ;
 
         if (order < 0L) {
-            throw new RuntimeException("잘못된 요청 입니다.");
+            throw new TokenException(RESOURCE_NOT_FOUND);
         }
 
         return order;
@@ -125,6 +149,5 @@ public class TokenService {
         //2) 사용자는 폴링을 계속 할테지만 자신의 발급시간, 가장 빨랏던 순번의 발급시간 + 10초 마다 들여보냄 스택을쌓아서 계산함
         //3) 스택은 얼마나 기다렸는지에 대한 표시로 10초마다 호출한다면 1씩 쌓인다.
         // 내 발급시간 + 스택시간 - 가장빠른 발급시간이 0이 되면 db를 호출하고 들여보낸다 (active로 변경)
-    //스케줄러로 토큰 만료
-
+        //스케줄러로 토큰 만료
 }

@@ -34,13 +34,14 @@ class TokenServiceTest {
     void info_Wait() {
         //given
         Long userId = 1L;
+        String tokenUUID = "topTokenId";
         User user = new User(userId, "1234", "향해99");
 
         Long tokenId = 50L;
         Long topTokenId = 30L;
         TokenStatus tokenStatus = TokenStatus.WAIT;
 
-        Token token = new Token(tokenId,"topTokenId",user,"url",LocalDateTime.now()
+        Token token = new Token(tokenId,tokenUUID,user,"url",LocalDateTime.now()
                 ,tokenStatus,LocalDateTime.now(),LocalDateTime.now());
         doReturn(token).when(tokenRepository).findByUserId(any(Long.class));
 
@@ -48,7 +49,7 @@ class TokenServiceTest {
         doReturn(topToken).when(tokenRepository).findTopStatusWait();
 
         //when
-        TokenCommand.TokenCreateResDto TokenResDto = tokenService.info(userId);
+        TokenCommand.TokenCreateResDto TokenResDto = tokenService.getTokenInfo(tokenUUID);
 
         assertEquals(tokenStatus, TokenResDto.status());
         assertEquals(tokenId - topTokenId, TokenResDto.order());
@@ -59,17 +60,18 @@ class TokenServiceTest {
     void info_Active() {
         //given
         Long userId = 1L;
+        String tokenUUID = "topTokenId";
         User user = new User(userId, "1234", "향해99");
 
         Long tokenId = 50L;
         TokenStatus tokenStatus = TokenStatus.ACTIVE;
 
-        Token token = new Token(tokenId,"topTokenId",user,"url",LocalDateTime.now()
+        Token token = new Token(tokenId,tokenUUID,user,"url",LocalDateTime.now()
                 ,tokenStatus,LocalDateTime.now(),LocalDateTime.now());
         doReturn(token).when(tokenRepository).findByUserId(any(Long.class));
 
         //when
-        TokenCommand.TokenCreateResDto TokenResDto = tokenService.info(userId);
+        TokenCommand.TokenCreateResDto TokenResDto = tokenService.getTokenInfo(tokenUUID);
 
         assertEquals(tokenStatus, TokenResDto.status());
         assertEquals(0L, TokenResDto.order());
@@ -103,7 +105,7 @@ class TokenServiceTest {
         doReturn(topToken).when(tokenRepository).findTopStatusWait();
 
         //when
-        TokenCommand.TokenCreateResDto TokenResDto = tokenService.create(userId);
+        TokenCommand.TokenCreateResDto TokenResDto = tokenService.createToken(userId);
 
         //then
         assertEquals(userId,TokenResDto.userId());
@@ -138,7 +140,7 @@ class TokenServiceTest {
         doReturn(token).when(tokenRepository).save(any(Token.class));
 
         //when
-        TokenCommand.TokenCreateResDto TokenResDto = tokenService.create(userId);
+        TokenCommand.TokenCreateResDto TokenResDto = tokenService.createToken(userId);
 
         //then
         assertEquals(userId,TokenResDto.userId());
@@ -177,7 +179,7 @@ class TokenServiceTest {
         doReturn(topToken).when(tokenRepository).findTopStatusWait();
 
         //when
-        TokenCommand.TokenCreateResDto TokenResDto = tokenService.create(userId);
+        TokenCommand.TokenCreateResDto TokenResDto = tokenService.createToken(userId);
 
         //then
         assertEquals(findUserId,TokenResDto.userId());
@@ -215,7 +217,7 @@ class TokenServiceTest {
         doReturn(tokens).when(tokenRepository).findAllByStatus(TokenStatus.ACTIVE);
 
         //when
-        TokenCommand.TokenCreateResDto TokenResDto = tokenService.create(userId);
+        TokenCommand.TokenCreateResDto TokenResDto = tokenService.createToken(userId);
 
         //then
         assertEquals(findUserId,TokenResDto.userId());
@@ -264,6 +266,7 @@ class TokenServiceTest {
 
         assertEquals(saveTokenId - topTokenId,order);
     }
+
 
     /*
     @Test

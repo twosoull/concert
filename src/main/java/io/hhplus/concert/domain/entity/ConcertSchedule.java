@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 public class ConcertSchedule {
 
     @Id @GeneratedValue
-    private Long concertScheduleId;
+    @Column(name = "concert_schedule_id")
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "concert_id")
@@ -35,8 +36,8 @@ public class ConcertSchedule {
         this.updateAt = updateAt;
     }
 
-    public ConcertSchedule(Long concertScheduleId, Concert concert, LocalDateTime concertAt, Long totalAvailable, Long price, LocalDateTime createAt, LocalDateTime updateAt) {
-        this.concertScheduleId = concertScheduleId;
+    public ConcertSchedule(Long id, Concert concert, LocalDateTime concertAt, Long totalAvailable, Long price, LocalDateTime createAt, LocalDateTime updateAt) {
+        this.id = id;
         this.concert = concert;
         this.concertAt = concertAt;
         this.totalAvailable = totalAvailable;

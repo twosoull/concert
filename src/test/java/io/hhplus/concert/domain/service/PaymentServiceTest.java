@@ -74,12 +74,12 @@ class PaymentServiceTest {
                        .when(concertSeatRepository).findById(seatId);
         doReturn(token).when(tokenRepository).findByUserId(userId);
 
-        PaymentCommand.PaymentReqDto paymentReqDto
-                                 = new PaymentCommand.PaymentReqDto(userId, concertScheduleId, concertReservationId, seatId);
+        PaymentCommand.Pay Pay
+                                 = new PaymentCommand.Pay(userId, concertScheduleId, concertReservationId, seatId);
 
-        PaymentCommand.PaymentResDto paymentResDto = paymentService.payment(paymentReqDto);
+        PaymentCommand.getPaymentInfo paymentResDto = paymentService.pay(Pay);
 
-        assertEquals(concertTitle, paymentResDto.ConcertTitle());
+        assertEquals(concertTitle, paymentResDto.concertTitle());
         assertEquals(concertAt, paymentResDto.concertAt());
         assertEquals(ReservationStatus.RESERVED, paymentResDto.reservationStatus());
         assertEquals(price, paymentResDto.price());

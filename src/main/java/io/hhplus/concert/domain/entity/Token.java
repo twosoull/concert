@@ -9,6 +9,23 @@ import java.util.Random;
 import java.util.UUID;
 
 @Entity
+@SqlResultSetMapping(
+        name = "CheckTokenResultMapping",
+        classes = @ConstructorResult(
+                targetClass = io.hhplus.concert.domain.command.TokenCommand.CheckTokenResultDto.class,
+                columns = {
+                        @ColumnResult(name = "status", type = TokenStatus.class),
+                        @ColumnResult(name = "token_id", type = Long.class),
+                        @ColumnResult(name = "count", type = int.class)
+                }
+        )
+)
+@NamedNativeQuery(
+        name = "Token.findByActiveTokenAndCountAndTopId",
+        query = "SELECT t1_0.status, t1_0.token_id, (SELECT COUNT(*) FROM token t1_1 WHERE t1_1.status = 'ACTIVE') AS count " +
+                "FROM token t1_0 WHERE t1_0.status = 'ACTIVE' GROUP BY t1_0.status, t1_0.user_id ORDER BY t1_0.user_id DESC LIMIT 1",
+        resultSetMapping = "CheckTokenResultMapping"
+)
 @Getter
 public class Token {
 
@@ -16,7 +33,7 @@ public class Token {
     @Column(name = "token_id")
     private Long id;
 
-    private String Token;
+    private String token;
 
     @OneToOne
     @JoinColumn(name = "user_id")
@@ -50,7 +67,7 @@ public class Token {
     }
 
     public Token(String token, User user, String url, LocalDateTime accessTime, TokenStatus status, LocalDateTime createAt, LocalDateTime updateAt) {
-        Token = token;
+        this.token = token;
         this.user = user;
         this.url = url;
         this.accessTime = accessTime;
@@ -61,7 +78,7 @@ public class Token {
 
     public Token(Long id, String token, User user, String url, LocalDateTime accessTime, TokenStatus status, LocalDateTime createAt, LocalDateTime updateAt) {
         this.id = id;
-        Token = token;
+        this.token = token;
         this.user = user;
         this.url = url;
         this.accessTime = accessTime;

@@ -1,8 +1,11 @@
 package io.hhplus.concert.presentation.controller;
 
+import io.hhplus.concert.domain.service.WalletService;
+import io.hhplus.concert.presentation.dto.WalletDto;
 import io.hhplus.concert.presentation.mockApi.dto.WalletBalanceResDto;
 import io.hhplus.concert.presentation.mockApi.dto.WalletChargeReqDto;
 import io.hhplus.concert.presentation.mockApi.dto.WalletChargeResDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,18 +16,27 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 
 @RestController
+@RequiredArgsConstructor
 public class WalletController {
 
-    //@GetMapping("/wallet/balance/info")
-    public ResponseEntity<WalletBalanceResDto> balanceInfo(@RequestBody Long userId) {
+    private final WalletService walletService;
 
-        return new ResponseEntity<>(new WalletBalanceResDto(100000L), HttpStatus.OK);
+    @GetMapping("/wallet/balance/info")
+    public ResponseEntity<WalletDto.BalanceInfoResponse> getBalanceInfo(@RequestBody WalletDto.BalanceInfoRequest balanceInfoRequest) {
+        return new ResponseEntity<>(
+                WalletDto.balanceInfoResponseOf(
+                        walletService.getBalanceInfo(
+                                WalletDto.BalanceInfoToCommend(balanceInfoRequest)
+                        )),
+                HttpStatus.OK);
     }
 
-    //@PostMapping("/wallet/charge")
-    public ResponseEntity<WalletChargeResDto> charge(@RequestBody WalletChargeReqDto walletChargeReqDto) {
+    @PostMapping("/wallet/charge")
+    public ResponseEntity<WalletDto.ChargeResponse> chargeWallet(@RequestBody WalletDto.ChargeRequest chargeRequest) {
 
-        return new ResponseEntity<>(new WalletChargeResDto(2000L, 3000L,5000L, 5000L, LocalDateTime.of(2024, 6, 23, 14, 30)),
+        return new ResponseEntity<>(
+                WalletDto.ChargeResponseOf(walletService.chargeWallet(
+                        WalletDto.chargeToCommand(chargeRequest))),
                 HttpStatus.OK);
     }
 }

@@ -15,13 +15,13 @@ import java.time.LocalDateTime;
 @RestController
 public class WalletMockController {
 
-    @GetMapping("/wallet/balance/info")
+    //@GetMapping("/wallet/balance/info")
     public ResponseEntity<WalletBalanceResDto> balanceInfo(@RequestBody Long userId) {
 
         return new ResponseEntity<>(new WalletBalanceResDto(100000L), HttpStatus.OK);
     }
 
-    @PostMapping("/wallet/charge")
+    //@PostMapping("/wallet/charge")
     public ResponseEntity<WalletChargeResDto> charge(@RequestBody WalletChargeReqDto walletChargeReqDto) {
 
         return new ResponseEntity<>(new WalletChargeResDto(2000L, 3000L,5000L, 5000L, LocalDateTime.of(2024, 6, 23, 14, 30)),

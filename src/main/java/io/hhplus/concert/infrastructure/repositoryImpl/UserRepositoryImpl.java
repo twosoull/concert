@@ -1,10 +1,13 @@
 package io.hhplus.concert.infrastructure.repositoryImpl;
 
 import io.hhplus.concert.domain.entity.User;
+import io.hhplus.concert.domain.handler.exception.RestApiException;
 import io.hhplus.concert.domain.respository.UserRepository;
 import io.hhplus.concert.infrastructure.repositoryORM.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.RESOURCE_NOT_FOUND;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,6 +21,8 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User findById(Long userId) {
-        return null;
+        return userJpaRepository.findById(userId).orElseThrow(
+                () -> new RestApiException(RESOURCE_NOT_FOUND)
+        );
     }
 }
