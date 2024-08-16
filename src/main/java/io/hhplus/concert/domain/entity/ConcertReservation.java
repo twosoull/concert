@@ -41,6 +41,10 @@ public class ConcertReservation {
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
+    @Version
+    private Long version;
+
+
     public void setStatus(ReservationStatus status) {
         this.status = status;
     }
@@ -48,21 +52,24 @@ public class ConcertReservation {
     public ConcertReservation() {
     }
 
-    public static ConcertReservation reserveStatusTemp(ConcertSchedule concertSchedule, Concert concert, User user, String concertTitle, String description, LocalDateTime concertAt, Long price, LocalDateTime createAt){
+    public ConcertReservation(Long concertReservationId, Object o, Object o1, User user, String concertTitle, String description, LocalDateTime concertAt, ReservationStatus reservationStatus, Long price, LocalDateTime now, Object o2) {
+    }
+
+    public static ConcertReservation createReserveStatusTemp(ConcertSchedule concertSchedule,User user, LocalDateTime now){
         return new ConcertReservation().builder()
                 .concertSchedule(concertSchedule)
-                .concert(concert)
+                .concert(concertSchedule.getConcert())
                 .user(user)
-                .concertTitle(concertTitle)
-                .description(description)
-                .concertAt(concertAt)
-                .price(price)
-                .createAt(createAt)
+                .concertTitle(concertSchedule.getConcert().getConcertTitle())
+                .description(concertSchedule.getConcert().getDescription())
+                .concertAt(concertSchedule.getConcertAt())
+                .price(concertSchedule.getPrice())
+                .createAt(now)
                 .status(ReservationStatus.TEMP)
                 .build();
     }
 
-    public void setReserved() {
+    public void reserved() {
         if(this.status == ReservationStatus.RESERVED){
             throw new RuntimeException("이미 예약 된 좌석 입니다.");
         }

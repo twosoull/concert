@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 public class PaymentDto {
 
-    public record PaymentRequest(Long userId, Long concertScheduleId, Long concertReservationId, Long seatId){}
+    public record PaymentRequest(Long userId, Long concertScheduleId, Long concertReservationId, Long concertSeatId){}
     public record PaymentResponse(String concertTitle,
                                 String description,
                                 LocalDateTime concertAt,
@@ -32,7 +32,7 @@ public class PaymentDto {
     }
 
     public static PaymentCommand.Pay paymentReqToCommend(PaymentRequest paymentRequest) {
-        return new PaymentCommand.Pay(paymentRequest.userId(), paymentRequest.concertScheduleId(),
-                paymentRequest.concertReservationId(), paymentRequest.seatId());
+        return new PaymentCommand.Pay(paymentRequest.concertScheduleId(),
+                paymentRequest.concertReservationId(), paymentRequest.concertSeatId());
     }
 }

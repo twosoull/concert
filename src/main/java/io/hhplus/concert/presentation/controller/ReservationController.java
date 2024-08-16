@@ -23,10 +23,11 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @GetMapping("/reservation/available/date")
-    public ResponseEntity<ReservationDto.AvailableDateResponse> getAvailableDate(@RequestBody Long concertScheduleId) {
+    public ResponseEntity<List<ReservationDto.AvailableDateResponse>> getAvailableDate(@RequestBody Long concertScheduleId) {
 
-        return new ResponseEntity<>
-                (ReservationDto.ResponseDateDto(reservationService.getAvailableDate(concertScheduleId))
+        return new ResponseEntity<>(
+                reservationService.getAvailableDate(concertScheduleId).stream().map(
+                        d -> ReservationDto.ResponseDateDto(d)).toList()
                         ,HttpStatus.OK);
     }
 
@@ -40,6 +41,7 @@ public class ReservationController {
 
     @PostMapping("/reservation")
     public ResponseEntity<ReservationDto.ReservationResponse> reserve(@RequestBody ReservationDto.ReservationRequest reservationRequest) {
+
         return new ResponseEntity<>(
                 ReservationDto.ResponseResevationDto(reservationService.reserve(
                         ReservationDto.toCommand(reservationRequest)))
