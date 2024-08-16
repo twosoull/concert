@@ -31,6 +31,13 @@ public class PaymentOutBox {
     public PaymentOutBox() {
     }
 
+    public PaymentOutBox(Long id, OutBoxStatus status, String messageKey, String messageValue) {
+        this.id = id;
+        this.status = status;
+        this.messageKey = messageKey;
+        this.messageValue = messageValue;
+    }
+
     public PaymentOutBox(OutBoxStatus status, String messageKey, String messageValue) {
         this.status = status;
         this.messageKey = messageKey;

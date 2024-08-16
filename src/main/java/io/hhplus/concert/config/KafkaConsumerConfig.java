@@ -24,6 +24,8 @@ public class KafkaConsumerConfig {
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class.getName());
         config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "io.hhplus.concert.domain.message,java.util,java.lang");
         config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "io.hhplus.concert.domain.message.PaymentMessage");
 
