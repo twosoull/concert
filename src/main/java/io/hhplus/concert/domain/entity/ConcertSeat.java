@@ -17,7 +17,7 @@ public class ConcertSeat {
     @Column(name = "concert_seat_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "concert_schedule_id")
     private ConcertSchedule concertSchedule;
 

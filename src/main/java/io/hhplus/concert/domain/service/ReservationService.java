@@ -36,13 +36,13 @@ public class ReservationService {
     private final RequestTokenUtil requestTokenUtil;
     private final RedisRepository redisRepository;
     public List<ConcertSchedule> getAvailableDate(Long concertId) {
-        validToken();
+        //validToken();
         List<ConcertSchedule> concertSchedules = concertScheduleRepository.findByConcertId(concertId);
         return concertSchedules;
     }
 
     public List<ConcertSeat> getAvailableSeat(Long concertScheduleId) {
-        validToken();
+        //validToken();
         List<ConcertSeat> findConcertSeats = concertSeatRepository
                 .findAllByConcertScheduleIdAndStatus(concertScheduleId, SeatStatus.UNASSIGNED);
         return findConcertSeats;
@@ -50,7 +50,7 @@ public class ReservationService {
 
     @Transactional
     public ConcertReservation reserve(ReservationCommand.reserve reserve){
-        validToken();
+        //validToken();
         Long currentTokenUserId = requestTokenUtil.getCurrentTokenUserId();
         User user = userRepository.findById(currentTokenUserId);
         ConcertSchedule concertSchedule = concertScheduleRepository.findById(reserve.concertScheduleId());
@@ -66,7 +66,7 @@ public class ReservationService {
             // 낙관적 락 예외가 발생할 수 있는 부분
             ConcertSeat concertSeat = concertSeatRepository.findByIdWithOptimisticLock(concertSeatId);
             concertSeat.setSeatStatusTemp(concertSchedule, user, now);
-
+            log.info("test {}" , concertSeatId);
             // 즉시 플러시
             entityManager.flush();
 

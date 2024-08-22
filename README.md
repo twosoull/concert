@@ -10,3 +10,6 @@ uri : https://dev0hoon.tistory.com/378
 
 STEP 17) - docker 를 이용해 kafka 를 설치 및 실행하고 애플리케이션과 연결
 ![img.png](img.png)
+
+STEP 20) - 장애 대응 보고서
+uri : https://dev0hoon.tistory.com/389

@@ -12,7 +12,7 @@ public interface WalletJpaRepository extends JpaRepository<Wallet, Long> {
     @Query("select w from Wallet w where w.user.id = :userId")
     Wallet findByUserId(@Param("userId") Long userId);
 
-    @Lock(LockModeType.OPTIMISTIC)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("select w from Wallet w where w.user.id = :userId")
     Wallet findByUserIdWithOptimisticLock(@Param("userId") Long userId);
 }

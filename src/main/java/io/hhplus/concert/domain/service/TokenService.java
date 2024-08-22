@@ -1,38 +1,27 @@
 package io.hhplus.concert.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.hhplus.concert.common.enums.TokenStatus;
 import io.hhplus.concert.common.utils.RequestTokenUtil;
 import io.hhplus.concert.domain.command.TokenCommand;
 import io.hhplus.concert.domain.entity.Token;
 import io.hhplus.concert.domain.entity.User;
 import io.hhplus.concert.domain.handler.exception.RestApiException;
-import io.hhplus.concert.domain.handler.exception.TokenException;
-import io.hhplus.concert.domain.handler.response.ErrorCode;
 import io.hhplus.concert.domain.respository.RedisRepository;
 import io.hhplus.concert.domain.respository.TokenRepository;
 
 import io.hhplus.concert.domain.respository.UserRepository;
-import io.hhplus.concert.domain.token.RedisToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.io.IOException;
 import java.util.Set;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
-import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.RESOURCE_NOT_FOUND;
 import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCode.TOKEN_ALREADY_CREATE;
 
 
@@ -41,6 +30,19 @@ import static io.hhplus.concert.domain.handler.exception.errorCode.CommonErrorCo
 @RequiredArgsConstructor
 @Transactional
 public class TokenService {
+
+    private static final Logger logger = Logger.getLogger(TokenService.class.getName());
+
+    static {
+        try {
+            // MacOS의 경우, 로그 파일의 경로를 설정합니다.
+            FileHandler fileHandler = new FileHandler("/Users/iyeonghun/Desktop/Project/logs/token_service.log", true);
+            fileHandler.setFormatter(new SimpleFormatter());
+            logger.addHandler(fileHandler);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private final TokenRepository tokenRepository;
     private final RequestTokenUtil requestTokenUtil;
@@ -63,32 +65,44 @@ public class TokenService {
         return TokenCommand.tokenInfo(currentToken,tokenRank, waitingTimeSeconds);
     }
 
-    public TokenCommand.TokenCreateResDto createToken(Long userId) throws JsonProcessingException {
-        //토큰 발급
-        String tokenUUID = Token.create();
-        redisRepository.save(tokenUUID);
+    public TokenCommand.TokenCreateResDto  createToken(Long userId) throws JsonProcessingException {
+        String tokenUUID = "";
+        Long tokenOrder = 0L;
+        int waitingTimeSeconds = 0;
+        try {
+            //토큰 발급
+            tokenUUID = Token.create();
+            redisRepository.save(tokenUUID);
 
-        Token findbyUserIdToken = tokenRepository.findByUserId(userId);
-        if(findbyUserIdToken != null){
-            throw new RestApiException(TOKEN_ALREADY_CREATE);
+
+            Token findbyUserIdToken = tokenRepository.findByUserId(userId);
+            if (findbyUserIdToken != null) {
+                throw new RestApiException(TOKEN_ALREADY_CREATE);
+            }
+            User user = new User(userId, "1234", "홍식이");
+
+            Token token = new Token(tokenUUID, user);
+            tokenRepository.save(token);
+
+            //순서조회
+            tokenOrder = redisRepository.getTokenRank(tokenUUID);
+
+            //대기시간
+            waitingTimeSeconds = waitingTimeSeconds(tokenOrder);
+
+
+        } catch(Exception e){
+            // 예외 발생 시 로그를 파일에 기록
+            logger.severe("Error occurred: " + e.getMessage());
+            e.printStackTrace();
         }
-        User user = new User(userId,"1234", "홍식이");
-
-        Token token = new Token(tokenUUID, user);
-        tokenRepository.save(token);
-
-        //순서조회
-        Long tokenOrder = redisRepository.getTokenRank(tokenUUID);
-
-        //대기시간
-        int waitingTimeSeconds = waitingTimeSeconds(tokenOrder);
         return TokenCommand.tokenInfo(tokenUUID,tokenOrder,waitingTimeSeconds);
     }
 
     public int waitingTimeSeconds(Long tokenOrder) {
         int position = Math.toIntExact(tokenOrder); // 사용자의 입장 순서
         int intervalInSeconds = 10; // 활성화 간격 (초)
-        int usersPerInterval = 10; // 한 번에 활성화되는 사용자 수
+        int usersPerInterval = 1000; // 한 번에 활성화되는 사용자 수
 
         int waitingTimeInSeconds = calculateWaitingTime(position, intervalInSeconds, usersPerInterval);
         return waitingTimeInSeconds;
