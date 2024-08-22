@@ -1,9 +1,6 @@
 package io.hhplus.concert.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -20,6 +17,9 @@ public class Concert {
     private String description;
 
     private LocalDateTime concertAt;
+
+    @Version
+    private Long version = 0L;
 
     public Concert() {
     }

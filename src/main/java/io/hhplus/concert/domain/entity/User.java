@@ -16,7 +16,11 @@ public class User {
     @Column(name="user_id")
     private Long id;
     private String password;
-    String name;
+    private String name;
+
+
+    @Version
+    private Long version = 0L;
 
     public User(Long id, String password, String name) {
         this.id = id;
