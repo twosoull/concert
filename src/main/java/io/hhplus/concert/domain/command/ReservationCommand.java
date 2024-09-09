@@ -9,8 +9,7 @@ public class ReservationCommand {
 
     public record reserve(Long concertId
             , Long concertScheduleId
-            , Long concertSeatId
-            , Long userId){
+            , Long concertSeatId){
     }
     public record Reserved(
             Long concertReservationId

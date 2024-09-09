@@ -48,16 +48,16 @@ public class ConcertReservation {
     public ConcertReservation() {
     }
 
-    public static ConcertReservation reserveStatusTemp(ConcertSchedule concertSchedule, Concert concert, User user, String concertTitle, String description, LocalDateTime concertAt, Long price, LocalDateTime createAt){
+    public static ConcertReservation createReserveStatusTemp(ConcertSchedule concertSchedule,User user, LocalDateTime now){
         return new ConcertReservation().builder()
                 .concertSchedule(concertSchedule)
-                .concert(concert)
+                .concert(concertSchedule.getConcert())
                 .user(user)
-                .concertTitle(concertTitle)
-                .description(description)
-                .concertAt(concertAt)
-                .price(price)
-                .createAt(createAt)
+                .concertTitle(concertSchedule.getConcert().getConcertTitle())
+                .description(concertSchedule.getConcert().getDescription())
+                .concertAt(concertSchedule.getConcertAt())
+                .price(concertSchedule.getPrice())
+                .createAt(now)
                 .status(ReservationStatus.TEMP)
                 .build();
     }
