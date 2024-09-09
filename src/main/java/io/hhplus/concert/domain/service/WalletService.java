@@ -1,6 +1,8 @@
 package io.hhplus.concert.domain.service;
 
+import io.hhplus.concert.common.utils.RequestTokenUtil;
 import io.hhplus.concert.domain.command.WalletCommand;
+import io.hhplus.concert.domain.entity.Token;
 import io.hhplus.concert.domain.entity.Wallet;
 import io.hhplus.concert.domain.entity.WalletHistory;
 import io.hhplus.concert.domain.handler.exception.RestApiException;
@@ -22,9 +24,11 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final WalletHistoryRepository walletHistoryRepository;
+    private final RequestTokenUtil requestTokenUtil;
 
-    public Wallet getBalanceInfo(WalletCommand.GetBalanceInfo getBalanceInfo) {
-        Wallet wallet = walletRepository.findByUserId(getBalanceInfo.userId());
+    public Wallet getBalanceInfo() {
+        Long currentTokenUserId = requestTokenUtil.getCurrentTokenUserId();
+        Wallet wallet = walletRepository.findByUserId(currentTokenUserId);
         if(ObjectUtils.isEmpty(wallet)){
             throw new RestApiException(RESOURCE_NOT_FOUND);
         }

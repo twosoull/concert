@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ReservationDto {
 
-    public record ReservationRequest (Long concertId, Long concertScheduleId, Long concertSeatId, Long userId){}
+    public record ReservationRequest (Long concertId, Long concertScheduleId, Long concertSeatId, String LockType){}
 
     public record AvailableDateResponse(Long concertScheduleId,LocalDateTime concertAt){}
 
@@ -54,6 +54,6 @@ public class ReservationDto {
 
     public static ReservationCommand.reserve toCommand(ReservationRequest reservationRequest){
         return new ReservationCommand.reserve(reservationRequest.concertId,reservationRequest.concertScheduleId
-        , reservationRequest.concertSeatId, reservationRequest.userId);
+        , reservationRequest.concertSeatId,"");
     }
 }

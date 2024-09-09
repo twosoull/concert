@@ -25,6 +25,9 @@ public class Wallet {
     private LocalDateTime createAt;
     private LocalDateTime lastUpdateAt;
 
+    @Version
+    private Long version;
+
     public void setBalance(Long balance) {
         this.balance = balance;
     }
@@ -35,6 +38,11 @@ public class Wallet {
 
     public Wallet(Long id, User user, Long balance) {
         this.id = id;
+        this.user = user;
+        this.balance = balance;
+    }
+
+    public Wallet(User user, Long balance) {
         this.user = user;
         this.balance = balance;
     }

@@ -75,7 +75,7 @@ class PaymentServiceTest {
         doReturn(token).when(tokenRepository).findByUserId(userId);
 
         PaymentCommand.Pay Pay
-                                 = new PaymentCommand.Pay(userId, concertScheduleId, concertReservationId, seatId);
+                                 = new PaymentCommand.Pay(concertScheduleId, concertReservationId, seatId);
 
         PaymentCommand.getPaymentInfo paymentResDto = paymentService.pay(Pay);
 

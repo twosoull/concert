@@ -66,6 +66,11 @@ public class Token {
     public Token() {
     }
 
+    public Token(String token, User user) {
+        this.token = token;
+        this.user = user;
+    }
+
     public Token(String token, User user, String url, LocalDateTime accessTime, TokenStatus status, LocalDateTime createAt, LocalDateTime updateAt) {
         this.token = token;
         this.user = user;
@@ -87,12 +92,11 @@ public class Token {
         this.updateAt = updateAt;
     }
 
-    public static Token create(User user, TokenStatus status){
+    public static String create(){
         UUID uuid = generateType1UUID();
         String uuidString = uuid.toString();
 
-        return new Token(uuidString,user,"url", LocalDateTime.now(), status
-                , LocalDateTime.now(),LocalDateTime.now());
+        return uuidString;
     };
 
     public void expiration(LocalDateTime now) {
