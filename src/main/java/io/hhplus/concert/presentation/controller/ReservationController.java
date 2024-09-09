@@ -40,6 +40,7 @@ public class ReservationController {
 
     @PostMapping("/reservation")
     public ResponseEntity<ReservationDto.ReservationResponse> reserve(@RequestBody ReservationDto.ReservationRequest reservationRequest) {
+
         return new ResponseEntity<>(
                 ReservationDto.ResponseResevationDto(reservationService.reserve(
                         ReservationDto.toCommand(reservationRequest)))

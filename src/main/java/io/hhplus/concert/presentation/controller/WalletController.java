@@ -25,9 +25,7 @@ public class WalletController {
     public ResponseEntity<WalletDto.BalanceInfoResponse> getBalanceInfo(@RequestBody WalletDto.BalanceInfoRequest balanceInfoRequest) {
         return new ResponseEntity<>(
                 WalletDto.balanceInfoResponseOf(
-                        walletService.getBalanceInfo(
-                                WalletDto.BalanceInfoToCommend(balanceInfoRequest)
-                        )),
+                        walletService.getBalanceInfo()),
                 HttpStatus.OK);
     }
 
