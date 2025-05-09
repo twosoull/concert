@@ -64,7 +64,7 @@ public class ConcertSeat {
     }
 
 
-    public void seatStatusTemp(ConcertSchedule concertSchedule, LocalDateTime now){
+    public void setSeatStatusTemp(ConcertSchedule concertSchedule, LocalDateTime now){
         this.concertSchedule = concertSchedule;
         this.status = SeatStatus.TEMP;
         this.tempAssignmentTime = now;

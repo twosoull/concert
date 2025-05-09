@@ -43,10 +43,9 @@ class WalletServiceTest {
         Wallet wallet = new Wallet(walletId, user, balance);
 
         doReturn(wallet).when(walletRepository).findByUserId(any(Long.class));
-        WalletCommand.GetBalanceInfo userInfo = new WalletCommand.GetBalanceInfo(userId);
 
         //when
-        Wallet findWallet = walletService.getBalanceInfo(userInfo);
+        Wallet findWallet = walletService.getBalanceInfo();
 
         //then
         assertEquals(walletId,findWallet.getId());
@@ -59,11 +58,9 @@ class WalletServiceTest {
         //given
         Long userId = 1L;
 
-        WalletCommand.GetBalanceInfo userInfo = new WalletCommand.GetBalanceInfo(userId);
-
         //when & then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            walletService.getBalanceInfo(userInfo);
+            walletService.getBalanceInfo();
         });
 
         // 예외 메시지 검증
